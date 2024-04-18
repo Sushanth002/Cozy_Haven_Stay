@@ -1,16 +1,4 @@
-// const userModule=require('./user');
 
-// //Successfully creating user account
-// userModule.createUser("sushanth","Sushanth@123","sushanth@gmail.com","M","1234567890","A.P");
-
-// //Error creating user account
-// userModule.createUser("sushanth","Sushanth@123","sushanth@gmail.com","","1234567890","A.P");
-
-// //Valid user details
-// userModule.isValidUser("sushanth","Sushanth@123");
-
-// //Invalid details
-// userModule.isValidUser("sushanth","admin@123");
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 //day 10
 const userService = require('./src/services/user.service');
