@@ -1,30 +1,12 @@
 const db = require("../../config/dbconfig");
-const { Sequelize } = require("sequelize");
 const models = require("../../models/index");
-
+const { Op } = require("sequelize");
 
 // add new hotel_detail
 // 1-> hotelownerdashboard addnew hotel (ifnotexist)->hotelowner adds new hotel
 module.exports.addNewHotel = async (data) => {
   try {
     let result = await models.hotelDetailModel.create(data);
-    return result.dataValues;
-  } catch (error) {
-    console.log(error);
-    return "FAILURE";
-  }
-};
-module.exports.addNewHotelAmenity = async (data) => {
-  try {
-    const result = await models.hotelAmenityModel.create({
-      hotel_id: data.hotel_id,
-      parking: data.parking,
-      wifi: data.wifi,
-      room_service: data.room_service,
-      swimming_pool: data.swimming_pool,
-      fitness_center: data.fitness_center,
-      dining: data.dining,
-    });
     return result.dataValues;
   } catch (error) {
     console.log(error);
@@ -41,23 +23,6 @@ module.exports.updateHotelDetail = async (data) => {
         hotel_name: data.hotel_name,
         location: data.location,
         address: data.address,
-      },
-      {
-        where: {
-          hotel_id: data.hotel_id,
-        },
-      }
-    );
-    return result;
-  } catch (error) {
-    console.log(error);
-    return "FAILURE";
-  }
-};
-module.exports.updateHotelAmenityById = async (data) => {
-  try {
-    const [result] = await models.hotelAmenityModel.update(
-      {
         parking: data.parking,
         wifi: data.wifi,
         room_service: data.room_service,
@@ -93,204 +58,107 @@ module.exports.getHotelDetailById = async (id) => {
     return "FAILURE";
   }
 };
-module.exports.getHotelAmenityById = async (id) => {
-  try {
-    const result = await models.hotelAmenityModel.findOne({
-      where: {
-        hotel_id: id,
-      },
-    });
-
-    return result.dataValues;
-  } catch (error) {
-    console.log(error);
-    return "FAILURE";
-  }
-};
 
 // ******************************************************
 
 // get all hotel by hotel_owner
 // 1-> admindashborard -> display all hotels
 
-module.exports.searchHotels = async (location) => {
+// get all hotel by hotel location
+
+// get all hotel by (hotelloc+noofrooms+checkindate+checkoutdate)
+module.exports.getHotelByInput = async (data) => {
   try {
-    //console.log("Searching for hotels in:", location);
-    const hotels = await models.hotelDetailModel.findAll({ where: { location } });
-    // Map the array of Sequelize instances to an array of data values
-    //console.log("Hotels found:", hotels);
-    const hotelsData = hotels.map(hotel => hotel.toJSON());
-    return hotelsData;
+    // find count of all rooms as per hotel where checkinand checkout date lies between input dates
+    // use table bookingdetail
+
+    const bookedHotels = models.bookingDetailModel.findAll({
+      attributes: [
+        "hotel_id",
+        [
+          sequelize.fn("SUM", sequelize.col("no_rooms")),
+          "total_noof_bookedrooms",
+        ],
+      ],
+      where: {
+        checkin_date: {
+          [Op.between]: [data.inputCheckinDate, data.inputCheckoutDate],
+        },
+        checkout_date: {
+          [Op.between]: [data.inputCheckinDate, data.inputCheckoutDate],
+        },
+        booking_status: "BOOKED",
+      },
+      group: ["hotel_id"],
+    });
+    let BookedHotelArray;
+    if (bookedHotels) {
+      BookedHotelArray = bookedHotels.map((instance) => instance.dataValues);
+    }
+
+    // find count of all rooms in all hotel with given location
+    // use hotel_detail roomdetail
+    const allhotelsByLocation = await models.hotelDetailModel.findAll({
+      where: { location: data.inputLocation },
+      include: [
+        {
+          model: models.roomDetailModel,
+          required: false,
+          attributes: [
+            [
+              sequelize.fn("COUNT", sequelize.col("RoomDetails.room_id")),
+              "total_noof_rooms",
+            ],
+          ],
+        },
+      ],
+      group: ["hotel_id"],
+    });
+    let formattedAllHotelsByLocation;
+    if (formattedAllHotelsByLocation) {
+      formattedAllHotelsByLocation = allhotelsByLocation.map((hotel) => ({
+        hotel_id: hotel.hotel_id,
+        hotel_name: hotel.hotel_name,
+        location: hotel.location,
+        address: hotel.address,
+        parking: hotel.parking,
+        wifi: hotel.wifi,
+        room_service: hotel.room_service,
+        swimming_pool: hotel.swimming_pool,
+        fitness_center: hotel.fitness_center,
+        dining: hotel.dining,
+        owner_id: hotel.owner,
+        total_noof_rooms:
+          hotel.RoomDetails.length > 0
+            ? hotel.RoomDetails[0].dataValues.total_noof_rooms
+            : 0,
+      }));
+    } else {
+      return null;
+    }
+
+    // format result to include hoteldetail and noof unbooked rooms if its greater than user no of rooms
+    const output = [];
+
+    formattedAllHotelsByLocation.forEach((hotel) => {
+      const hotelId = hotel.hotel_id;
+      const totalNoOfRooms = hotel.total_noof_rooms;
+
+      const bookedRoomsEntry = bookedHotels.find(
+        (entry) => entry.hotel_id === hotelId
+      );
+
+      if (bookedRoomsEntry) {
+        const totalBookedRooms = bookedRoomsEntry.total_noof_bookedrooms;
+        const notBookedRooms = totalNoOfRooms - totalBookedRooms;
+        if (notBookedRooms >= data.inputNoOfRooms) {
+          output.push({ ...hotel, total_noof_rooms_notbooked: notBookedRooms });
+        }
+      }
+    });
   } catch (error) {
     console.log(error);
     return "FAILURE";
   }
 };
-
-// get all hotel by (hotelloc+noofrooms+checkindate+checkoutdate)
-
-
-// module.exports.searchHotels = async (location, checkinDate, checkoutDate) => {
-//   try {
-//     // Find hotels based on the given location
-//     const hotels = await models.hotelDetailModel.findAll({
-//       where: {
-//         location: location,
-//       },
-//     });
-
-//     if (!hotels || hotels.length === 0) {
-//       // If no hotels found for the given location, return empty array
-//       return 'Hotels not found';
-//     }
-
-//     // Iterate through each hotel to check if there are any bookings for the provided check-in and check-out dates
-//     const availableHotels = await Promise.all(hotels.map(async (hotel) => {
-//       const bookings = await models.bookingDetailModel.findOne({
-//         where: {
-//           hotel_id: hotel.hotel_id,
-//           checkin_date: checkinDate,
-//           checkout_date: checkoutDate,
-//         },
-//       });
-
-//       // If no booking found for the given dates, return the hotel details
-//       if (!bookings) {
-//         return hotel;
-//       }
-
-//       return null;
-//     }));
-
-//     // Filter out the hotels which have bookings for the provided dates
-//     const filteredHotels = availableHotels.filter((hotel) => hotel !== null);
-
-//     if (filteredHotels.length === 0) {
-//       // If no hotels available for the provided dates, return empty array
-//       return 'Hotels not found';
-//     }
-
-//     return filteredHotels;
-//   } catch (error) {
-//     console.error('Error searching hotels:', error);
-//     throw new Error('Failed to search hotels');
-//   }
-// };
-
-// // 1->home page
-
-// module.exports.searchHotels = async (location, checkinDate, checkoutDate) => {
-//   try {
-//     // Find hotels based on the provided location
-//     const hotels = await models.hotelDetailModel.findAll({
-//       where: {
-//         location: location,
-//       },
-//     });
-
-//     if (!hotels || hotels.length === 0) {
-//       // If no hotels found for the given location, return "Hotels not found"
-//       return "Hotels not found";
-//     }
-
-//     // Check availability for each hotel
-//     const availableHotels = [];
-//     for (const hotel of hotels) {
-//       // Check if there are any bookings for the provided dates for this hotel
-//       const bookings = await models.bookingDetailModel.findAll({
-//         where: {
-//           hotel_id: hotel.hotel_id,
-//           checkin_date: { [Sequelize.Op.lte]: checkoutDate },
-//           checkout_date: { [Sequelize.Op.gte]: checkinDate },
-//         },
-//       });
-
-//       // If no bookings found for the provided dates, add the hotel to available hotels
-//       if (!bookings || bookings.length === 0) {
-//         availableHotels.push(hotel);
-//       }
-//     }
-
-//     if (availableHotels.length === 0) {
-//       // If no hotels available for the provided dates, return "Hotels not found"
-//       return "Hotels not found";
-//     }
-
-//     // Return the list of available hotels
-//     return availableHotels;
-//   } catch (error) {
-//     console.error('Error searching hotels:', error);
-//     throw new Error('Failed to search hotels');
-//   }
-// };
-
-
-module.exports.searchHotels = async (location, checkinDate, checkoutDate, numberOfRooms) => {
-  try {
-    // Find hotels based on the provided location
-    const hotels = await models.hotelDetailModel.findAll({
-      where: {
-        location: location,
-      },
-    });
-
-    if (!hotels || hotels.length === 0) {
-      // If no hotels found for the given location, return "Hotels not found"
-      return "Hotels not found";
-    }
-
-    // Calculate total rooms for each hotel
-    const hotelRoomCounts = await models.roomDetailModel.findAll({
-      attributes: ['hotel_id', [Sequelize.fn('COUNT', Sequelize.col('hotel_id')), 'total_rooms']],
-      group: ['hotel_id'],
-    });
-
-    console.log("total rooms"+hotelRoomCounts);
-
-    // Create a map to store hotel IDs and their corresponding total rooms
-    const hotelRoomMap = new Map();
-    hotelRoomCounts.forEach(({ hotel_id, total_rooms }) => {
-      hotelRoomMap.set(hotel_id, total_rooms);
-    });
-
-    // Check availability for each hotel
-    const availableHotels = [];
-    for (const hotel of hotels) {
-      const totalRooms = hotelRoomMap.get(hotel.hotel_id) || 0;
-
-      // Check if there are any bookings for the provided dates for this hotel
-      const bookings = await models.bookingDetailModel.findAll({
-        where: {
-          hotel_id: hotel.hotel_id,
-          checkin_date: { [Sequelize.Op.lte]: checkoutDate },
-          checkout_date: { [Sequelize.Op.gte]: checkinDate },
-        },
-      });
-
-      // Calculate available rooms considering existing bookings
-      let availableRooms = totalRooms;
-      for (const booking of bookings) {
-        // Check if the booking date range overlaps with the requested date range
-        if (booking.checkin_date <= checkoutDate && booking.checkout_date >= checkinDate) {
-          availableRooms -= booking.no_rooms || 0;
-        }
-      }
-
-      // If available rooms are greater than or equal to the requested number of rooms, add the hotel to available hotels
-      if (availableRooms >= numberOfRooms) {
-        availableHotels.push(hotel);
-      }
-    }
-
-    if (availableHotels.length === 0) {
-      // If no hotels available for the provided dates or number of rooms, return "Hotels not found"
-      return "Hotels not found";
-    }
-
-    // Return the list of available hotels
-    return availableHotels;
-  } catch (error) {
-    console.error('Error searching hotels:', error);
-    throw new Error('Failed to search hotels');
-  }
-};
+// 1->home page

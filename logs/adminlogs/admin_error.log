@@ -1,0 +1,5 @@
+2024-05-02T19:08:02.948Z [admin_service] error: getAdminById -> $ADMIN_ID=[1] : Couldnot fetch admin detail
+2024-05-02T19:11:40.038Z [admin_service] error: getAdminById -> $ADMIN_ID=[1] : Couldnot fetch admin detail
+2024-05-06T09:51:58.254Z [admin_service] error: deleteUserById -> $ADMIN_ID=[1] : No user with given id found
+2024-05-06T09:51:58.360Z [admin_service] error: deleteOwnerById -> $ADMIN_ID=[1] : No owner with given id found
+2024-05-06T09:51:58.454Z [admin_service] error: getAdminById -> $ADMIN_ID=[1] : Couldnot fetch admin detail

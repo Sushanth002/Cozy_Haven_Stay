@@ -12,23 +12,18 @@ const RoomDetail = db.define(
     },
     room_size: {
       type: DataTypes.INTEGER,
-      allowNull: false,
     },
     bed_size: {
       type: DataTypes.ENUM("SINGLE_BED", "DOUBLE_BED", "KINGSIZE_BED"),
-      allowNull: false,
     },
     max_people_accomodate: {
       type: DataTypes.INTEGER,
-      allowNull: false,
     },
     base_fare: {
       type: DataTypes.INTEGER,
-      allowNull: false,
     },
     ac_non_ac: {
       type: DataTypes.BOOLEAN,
-      allowNull: false,
     },
     hotel_id: {
       type: DataTypes.INTEGER,
@@ -49,3 +44,20 @@ const RoomDetail = db.define(
 // RoomDetail.belongsTo(models.hotelDetailModel, { foreignKey: "hotel_id" });
 
 module.exports = RoomDetail;
+
+// DROP TABLE IF EXISTS room_detail;
+// CREATE TABLE IF NOT EXISTS room_detail (
+// 	room_id INT PRIMARY KEY AUTO_INCREMENT,
+//     room_size INT ,
+//     bed_size ENUM ('SINGLE_BED', 'DOUBLE_BED', 'KINGSIZE_BED'),
+//     max_people_accomodate INT,
+//     base_fare INT,
+//     ac_non_ac BOOL,
+//     hotel_id INT NOT NULL ,
+
+// INSERT INTO room_detail (room_size, bed_size, max_people_accomodate, base_fare, ac_non_ac, hotel_id)VALUES (99,"SINGLE_BED", 1,499,TRUE,1);
+// INSERT INTO room_detail (room_size, bed_size, max_people_accomodate, base_fare, ac_non_ac, hotel_id)VALUES (199,"DOUBLE_BED", 2,999,FALSE,1);
+// INSERT INTO room_detail (room_size, bed_size, max_people_accomodate, base_fare, ac_non_ac, hotel_id)VALUES (299,"KINGSIZE_BED", 3,1499,TRUE,1);
+// INSERT INTO room_detail (room_size, bed_size, max_people_accomodate, base_fare, ac_non_ac, hotel_id)VALUES (99,"SINGLE_BED", 1,499,FALSE,2);
+// INSERT INTO room_detail (room_size, bed_size, max_people_accomodate, base_fare, ac_non_ac, hotel_id)VALUES (199,"DOUBLE_BED", 2,999,TRUE,2);
+// INSERT INTO room_detail (room_size, bed_size, max_people_accomodate, base_fare, ac_non_ac, hotel_id)VALUES (299,"KINGSIZE_BED", 3,1499,FALSE,2);

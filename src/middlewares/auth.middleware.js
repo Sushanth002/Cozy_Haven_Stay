@@ -1,95 +1,44 @@
-// const ApiError = require("../utils/ApiError");
-// const jwt = require("jsonwebtoken");
-// require("dotenv").config();
-// const models = require("../models/index"); 
-
-// module.exports.verifyJWT = async (req, _, next) => {
-//   try {
-//     const token =
-//       req.cookies?.accessToken ||
-//       req.header("Authorization")?.replace("Bearer ", "");
-//     if (!token) {
-//       throw new ApiError(401, "Unauthorized request");
-//     }
-//     const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-//     const user = await models.userDetailModel.findById(decodedToken?._id).select(
-//       "-password -refreshToken"
-//     );
-//     if (!user) {
-//       throw new ApiError(401, "Invalid Access Token");
-//     }
-//     req.user = user;
-//     next();
-//   } catch (error) {
-//     throw new ApiError(401, error?.message || "Invalid access token");
-//   }
-// };
-
-
-// const jwt = require("jsonwebtoken");
-// require("dotenv").config();
-
-// module.exports.verifyJWT = async (req, _, next) => {
-//   try {
-//     const token =
-//       req.cookies?.accessToken ||
-//       req.header("Authorization")?.replace("Bearer ", "");
-//     if (!token) {
-//       throw new ApiError(401, "Unauthorized request");
-//     }
-//     const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-//     req.user = decodedToken; // Populate req.user with decoded token
-//     next();
-//   } catch (error) {
-//     throw new ApiError(401, error?.message || "Invalid access token");
-//   }
-// };
-
 const jwt = require("jsonwebtoken");
+const ApiError = require("../utils/ApiError");
 require("dotenv").config();
+const adminService = require("../services/admin/admin_detail.service");
+const hotelOwnerService = require("../services/hotel/hotel_owner_detail.service");
+const userService = require("../services/user/user_detail.service");
 
-
-// module.exports.verifyJWT = async (req, _, next) => {
-//   try {
-//     const token =
-//       req.cookies?.accessToken ||
-//       req.header("Authorization")?.replace("Bearer ", "");
-//     if (!token) {
-//       throw new Error("Unauthorized request");
-//     }
-//     console.log("Token:", token); // Log the token to see if it's being extracted correctly
-//     const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-//     console.log("Decoded token:", decodedToken); // Log the decoded token to see its contents
-    
-//     // Assuming user ID is stored in the token payload
-//     const user = await models.userDetailModel.findByPk(decodedToken?.user_id);
-//     console.log("User:", user); // Log the user object to see if it's being retrieved correctly
-
-//     if (!user) {
-//       throw new Error("Invalid Access Token");
-//     }
-//     req.user = user;
-//     next();
-//   } catch (error) {
-//     console.error(error);
-//     return next(error); // Pass the error to the error handling middleware
-//   }
-// };
-
-module.exports.verifyJWT = async (req, _, next) => {
+module.exports.verifyJWT = async (req, res, next) => {
   try {
-    const token =
-      req.cookies?.accessToken ||
-      req.header("Authorization")?.replace("Bearer ", "");
+    console.log("###########verifyJWTSTART#################");
+    const token = req.cookies?.accessToken;
     if (!token) {
-      throw new Error("Unauthorized request");
+      throw new ApiError(401, "Unauthorized request");
     }
-    console.log("Token:", token); // Log the token to see if it's being extracted correctly
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-    console.log("Token verified successfully");
+    let decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    const userRole = req.cookies?.userRole;
+    let result;
+    if (userRole === "admin") {
+      result = await adminService.getAdminById(decodedToken.id);
+    } else if (userRole === "owner") {
+      result = await hotelOwnerService.getHotelOwnerById(decodedToken.id);
+    } else if (userRole === "user") {
+      result = await userService.getUserById(decodedToken.id);
+    }
+    if (!result) {
+      throw new ApiError(401, "Invalid Access Token");
+    }
+
+    if (userRole === "admin") {
+      delete result.admin_password;
+    } else {
+      delete result.password;
+    }
+    delete result.refresh_token;
+
+    req.auth = { ...result, role: userRole, access_token: token };
+    console.log("###########verifyJWTEND#################");
     next();
   } catch (error) {
-    console.error(error);
-    return next(new Error("Invalid access token")); // Pass the error to the error handling middleware
+    res
+      .status(error.status || 500)
+      .json({ error: error.message || "Internal Server Error" });
   }
 };

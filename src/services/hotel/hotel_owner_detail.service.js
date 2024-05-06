@@ -1,4 +1,3 @@
-const db = require("../../config/dbconfig");
 const models = require("../../models/index");
 
 // get all hotelowner
@@ -20,6 +19,18 @@ module.exports.getHotelOwnerById = async (id) => {
   try {
     const result = await models.hotelOwnerDetailModel.findOne({
       where: { owner_id: id },
+    });
+
+    return result.dataValues;
+  } catch (error) {
+    console.log(error);
+    return "FAILURE";
+  }
+};
+module.exports.getHotelOwnerByEmail = async (email) => {
+  try {
+    const result = await models.hotelOwnerDetailModel.findOne({
+      where: { email: email },
     });
 
     return result.dataValues;
@@ -64,8 +75,7 @@ module.exports.updateHotelOwner = async (data) => {
     const [result] = await models.hotelOwnerDetailModel.update(
       {
         owner_name: data.owner_name,
-        password: data.password,
-        gender: data.gender,
+        gender: data.gender, //input should be present
         contact_no: data.contact_no,
         address: data.address,
       },
@@ -75,7 +85,26 @@ module.exports.updateHotelOwner = async (data) => {
         },
       }
     );
-    return result; //[noofrowsaffected]
+    return result; //noofrowsaffected
+  } catch (error) {
+    console.log(error);
+    return "FAILURE";
+  }
+};
+// update refresh token
+module.exports.updateHotelOwnerRefreshToken = async (data) => {
+  try {
+    const [result] = await models.hotelOwnerDetailModel.update(
+      {
+        refresh_token: data.refresh_token,
+      },
+      {
+        where: {
+          owner_id: data.owner_id,
+        },
+      }
+    );
+    return result; //noofrowsaffected
   } catch (error) {
     console.log(error);
     return "FAILURE";

@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
 // ************************************************************
+const bcrypt = require("bcrypt");
 
 const app = express();
 app.use(
@@ -12,10 +13,10 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: false, limit: "16kb" }));
-app.use(express.static("public"));
 app.use(cookieParser());
+app.use(express.json({ limit: "16kb" }));
+app.use(express.static("public"));
 
 // *************************************************************
 
@@ -29,8 +30,9 @@ app.use("/api/owner/", ownerRouter);
 // user router
 const userRouter = require("./src/routes/user.routes");
 app.use("/api/user/", userRouter);
-
-// ***************************************************************
+// common router
+const commonRouter = require("./src/routes/common.routes");
+app.use("/api/", commonRouter);
 
 // error middleware
 const errorHandler = require("./src/middlewares/error.middleware");
@@ -45,3 +47,5 @@ app.listen(backendPort, () => {
 });
 
 module.exports = app; //for testing
+
+// ***********************************

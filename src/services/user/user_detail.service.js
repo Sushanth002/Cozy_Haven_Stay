@@ -1,11 +1,14 @@
-const db = require("../../config/dbconfig");
 const models = require("../../models/index");
 // get all users
 // 1->admin dashborad ->user section
 module.exports.getAllUser = async () => {
   try {
-    const result = await models.userDetailModel.findAll();
-    const dataValuesArray = result.map((instance) => instance.dataValues);
+    // console.log("########SERVICE START###############");
+
+    let result = await models.userDetailModel.findAll();
+
+    let dataValuesArray = result.map((instance) => instance.dataValues);
+    // console.log("########SERVICE END###############");
     return dataValuesArray;
   } catch (error) {
     console.log(error);
@@ -19,6 +22,17 @@ module.exports.getUserById = async (id) => {
   try {
     const user_detail = await models.userDetailModel.findOne({
       where: { user_id: id },
+    });
+    return user_detail.dataValues;
+  } catch (error) {
+    console.log(error);
+    return "FALIURE";
+  }
+};
+module.exports.getUserByEmail = async (email) => {
+  try {
+    const user_detail = await models.userDetailModel.findOne({
+      where: { email: email },
     });
     return user_detail.dataValues;
   } catch (error) {
@@ -44,7 +58,7 @@ module.exports.addNewUser = async (data) => {
 module.exports.deleteUserById = async (id) => {
   try {
     const result = models.userDetailModel.destroy({ where: { user_id: id } });
-    return result; // noofitems OR 0
+    return result; // noof affected row
   } catch (error) {
     console.log(error);
     return "FAILURE";
@@ -53,11 +67,12 @@ module.exports.deleteUserById = async (id) => {
 
 // update existing user by id
 // 1-> user dashboard -> user wants to update user_detail
-module.exports.updateUser = async (data) => {
+module.exports.updateUserDetail = async (data) => {
   try {
     const [result] = await models.userDetailModel.update(
       {
         user_name: data.user_name,
+        password: data.password,
         gender: data.gender,
         contact_no: data.contact_no,
         address: data.address,
@@ -68,30 +83,28 @@ module.exports.updateUser = async (data) => {
         },
       }
     );
-    return result;
+    return result; //noofrowaffected
   } catch (error) {
     console.log(error);
     return "FAILURE";
   }
 };
-
-
-//Posting Reviews
-
-module.exports.addReview = async (bookingId, reviewMessage, rating) => {
+// update refresh token
+module.exports.updateUserRefreshToken = async (data) => {
   try {
-    // Create the review
-    const newReview = await models.reviewDetailModel.create({
-      booking_id: bookingId,
-      review: reviewMessage,
-      rating: rating,
-    });
-
-    return newReview;
+    const [result] = await models.userDetailModel.update(
+      {
+        refresh_token: data.refresh_token,
+      },
+      {
+        where: {
+          user_id: data.user_id,
+        },
+      }
+    );
+    return result; //noofrowaffected
   } catch (error) {
-    console.error("Error adding review:", error);
-    throw new Error("Failed to add review");
+    console.log(error);
+    return "FAILURE";
   }
 };
-
-

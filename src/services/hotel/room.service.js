@@ -1,10 +1,11 @@
 const db = require("../../config/dbconfig");
 const models = require("../../models/index");
+const { Op } = require("sequelize");
 
 // get room by room id
-module.exports.getRoomById = async () => {
+module.exports.getRoomById = async (roomId) => {
   try {
-    const result = await RoomDetail.findByPk(roomId);
+    const result = await models.roomDetailModel.findByPk(roomId);
     return result.dataValues;
   } catch (error) {
     console.log(error);
@@ -14,7 +15,7 @@ module.exports.getRoomById = async () => {
 // get all room by hotel id
 module.exports.getAllRoomsByHotelId = async (hotelId) => {
   try {
-    const result = await RoomDetail.findAll({
+    const result = await models.roomDetailModel.findAll({
       where: {
         hotel_id: hotelId,
       },
@@ -29,7 +30,7 @@ module.exports.getAllRoomsByHotelId = async (hotelId) => {
 // get all room by hotelowner id
 module.exports.getAllRoomsByHotelOwnerId = async (hotelId) => {
   try {
-    const result = await RoomDetail.findAll({
+    const result = await models.roomDetailModel.findAll({
       include: [
         {
           model: models.hotelDetailModel,
@@ -108,3 +109,31 @@ module.exports.deleteExistingRoom = async (id) => {
 // *********************************************************
 
 // get all rooms by hotelid, checkindate and checkoutdate   -> when someone clicks inside a hotel
+module.exports.getRoomByInput = async (data) => {
+  try {
+    //find booked rooms within the given date range
+    const bookedRooms = await models.bookingDescriptionModel.findAll({
+      where: {
+        checkin_date: { [Op.lte]: checkoutDate },
+        checkout_date: { [Op.gte]: checkinDate },
+      },
+      attributes: ["room_id"],
+    });
+    const bookedRoomIds = bookedRooms.map((booking) => booking.room_id);
+
+    //find available rooms for the given hotel ID
+    const availableRooms = await RoomDetail.findAll({
+      where: {
+        hotel_id: hotelId,
+        room_id: { [Op.notIn]: bookedRoomIds },
+      },
+    });
+    let availableRoomsList = availableRooms.map(
+      (instance) => instance.dataValues
+    );
+    return availableRoomsList;
+  } catch (error) {
+    console.error("Error fetching available rooms:", error);
+    return "FAILURE";
+  }
+};
