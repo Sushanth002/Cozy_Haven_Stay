@@ -52,10 +52,10 @@ router
   .route("/dashboard/booking/past-booking/:hotelid")
   .put(verifyJWT, getPastBooking);
 router
-  .route("/dashboard/booking/current-booking/:hotelid")
-  .put(verifyJWT, getCurrentBooking);
-router
   .route("/dashboard/booking/current-booking/update-status")
   .put(verifyJWT, updateBookingStatus);
+router
+  .route("/dashboard/booking/current-booking")
+  .get(verifyJWT, getCurrentBooking);
 
 module.exports = router;

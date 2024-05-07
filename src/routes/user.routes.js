@@ -3,6 +3,7 @@ const {
   userRegister,
   userLogin,
   userLogout,
+  createNewBooking,
 } = require("../controllers/user/user.controller.js");
 const {
   updateUserDetail,
@@ -35,6 +36,6 @@ router
 router
   .route("/dashboard/booking/current-booking/:userid")
   .get(verifyJWT, getCurrentBooking);
-//router.route("/newbooking").post(verifyJWT, createNewBooking);
+router.route("/newbooking").post(verifyJWT, createNewBooking);
 
 module.exports = router;

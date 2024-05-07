@@ -10,7 +10,7 @@ module.exports.addNewBookingDetail = async (data) => {
     return result.dataValues;
   } catch (error) {
     console.log(error);
-    return "Failure";
+    return "FAILURE";
   }
 };
 
@@ -20,6 +20,7 @@ module.exports.addNewBookingDetail = async (data) => {
 // 2-> booking status to REFUND_CANCELED
 module.exports.updateBookingDetail = async (data) => {
   try {
+    console.log("******************");
     const [result] = await models.bookingDetailModel.update(
       {
         booking_status: data.booking_status,
@@ -50,7 +51,7 @@ module.exports.getPastBookingByUserID = async (user_id) => {
     return dataValuesArray;
   } catch (error) {
     console.log(error);
-    return "Failure";
+    return "FAILURE";
   }
 };
 //past booking by hotelid
@@ -70,7 +71,7 @@ module.exports.getPastBookingByHotelID = async (hotel_id) => {
     return dataValuesArray;
   } catch (error) {
     console.log(error);
-    return "Failure";
+    return "FAILURE";
   }
 };
 //current booking by userid
@@ -90,17 +91,17 @@ module.exports.getCurrentBookingByUserID = async (user_id) => {
     return dataValuesArray;
   } catch (error) {
     console.log(error);
-    return "Failure";
+    return "FAILURE";
   }
 };
 //current booking by hotelid
-module.exports.getCurrentBookingByHotelID = async (hotel_id) => {
+module.exports.getCurrentBookingByHotelID = async (data) => {
   try {
     let today = new Date();
     today.setHours(0, 0, 0, 0);
     const result = await models.bookingDetailModel.findAll({
       where: {
-        hotel_id: hotel_id,
+        hotel_id: data.hotel_id,
         checkout_date: {
           [Op.gt]: today,
         },
@@ -110,6 +111,6 @@ module.exports.getCurrentBookingByHotelID = async (hotel_id) => {
     return dataValuesArray;
   } catch (error) {
     console.log(error);
-    return "Failure";
+    return "FAILURE";
   }
 };

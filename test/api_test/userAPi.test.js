@@ -8,7 +8,7 @@ chai.should();
 chai.use(chaiHttp);
 
 
-describe("OwnerApi", () => {
+describe("UserApi", () => {
 
 
     //register new user

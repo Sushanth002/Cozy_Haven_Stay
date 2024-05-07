@@ -114,10 +114,17 @@ module.exports.ownerLogin = AsyncHandler(async (req, res) => {
 //  logout existing hotelowner
 module.exports.ownerLogout = AsyncHandler(async (req, res) => {
   try {
-    // console.log("##########START############################");
+    console.log("##########START############################");
     let { owner_id: owner_authid } = req.auth;
-    let { ownerid } = req.params;
+    let ownerid = parseInt(req.params.ownerid);
 
+    if (owner_authid !== ownerid) {
+      console.log("#############################");
+      userLogger.error(
+        ` ownerLogout-> $OWNER_ID=[${user_authid}] : unauthorized access`
+      );
+      throw new ApiError(401, "unauthorized access");
+    }
     let data = await hotelOwnerService.getHotelOwnerById(owner_authid);
     if (data == "FAILURE") {
       ownerLogger.error(
@@ -139,7 +146,7 @@ module.exports.ownerLogout = AsyncHandler(async (req, res) => {
     ownerLogger.info(
       `ownerLogout -> $OWNER_ID=[${owner_authid}] : owner logged Out successfully`
     );
-    // console.log("##########END############################");
+    console.log("##########END############################");
     const options = {
       httpOnly: true,
       secure: true,

@@ -27,7 +27,7 @@ module.exports.getAdminById = AsyncHandler(async (req, res) => {
     }
 
     let { admin_id: admin_authid } = req.auth;
-    let { adminid } = req.params;
+    let adminid = parseInt(req.params.adminid);
     console.log(adminid);
     let adminDetail = await adminService.getAdminById(adminid);
     if (adminDetail === "FAILURE") {
@@ -88,7 +88,7 @@ module.exports.deleteUserById = AsyncHandler(async (req, res) => {
     // console.log("########START###############");
     let { admin_id: admin_authid } = req.auth;
 
-    let { userid } = req.params;
+    let userid = parseInt(req.params.userid);
     let isDeletedUser = await userService.deleteUserById(userid);
     if (!isDeletedUser) {
       adminLogger.error(
@@ -143,7 +143,7 @@ module.exports.deleteOwnerById = AsyncHandler(async (req, res) => {
   try {
     // console.log("########START###############");
     let { admin_id: admin_authid } = req.auth;
-    let { ownerid } = req.params;
+    let ownerid = parseInt(req.params.ownerid);
     let isDeletedOwner = await ownerService.deleteHotelOwnerById(ownerid);
     if (!isDeletedOwner) {
       adminLogger.error(
