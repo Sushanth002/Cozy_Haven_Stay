@@ -1,6 +1,7 @@
 const db = require("../../config/dbconfig");
 const models = require("../../models/index");
-const { Op } = require("sequelize");
+const { Sequelize, Op } = require("sequelize");
+// const sequelize = require("sequelize");
 
 // add new hotel_detail
 // 1-> hotelownerdashboard addnew hotel (ifnotexist)->hotelowner adds new hotel
@@ -72,20 +73,22 @@ module.exports.getHotelByInput = async (data) => {
     // find count of all rooms as per hotel where checkinand checkout date lies between input dates
     // use table bookingdetail
 
-    const bookedHotels = models.bookingDetailModel.findAll({
+    console.log("*******************START*******************");
+
+    const bookedHotels = await models.bookingDetailModel.findAll({
       attributes: [
         "hotel_id",
         [
-          sequelize.fn("SUM", sequelize.col("no_rooms")),
+          Sequelize.fn("SUM", Sequelize.col("no_rooms")),
           "total_noof_bookedrooms",
         ],
       ],
       where: {
         checkin_date: {
-          [Op.between]: [data.inputCheckinDate, data.inputCheckoutDate],
+          [Op.lte]: data.inputCheckinDate,
         },
         checkout_date: {
-          [Op.between]: [data.inputCheckinDate, data.inputCheckoutDate],
+          [Op.gte]: data.inputCheckoutDate,
         },
         booking_status: "BOOKED",
       },
@@ -95,47 +98,50 @@ module.exports.getHotelByInput = async (data) => {
     if (bookedHotels) {
       BookedHotelArray = bookedHotels.map((instance) => instance.dataValues);
     }
+    console.log(BookedHotelArray);
+    console.log("**************************************");
 
     // find count of all rooms in all hotel with given location
     // use hotel_detail roomdetail
     const allhotelsByLocation = await models.hotelDetailModel.findAll({
-      where: { location: data.inputLocation },
+      attributes: [
+        "hotel_id",
+        "hotel_name",
+        "location",
+        "address",
+        "parking",
+        "wifi",
+        "room_service",
+        "swimming_pool",
+        "fitness_center",
+        "dining",
+        "owner_id",
+        [
+          Sequelize.literal(
+            "(SELECT COUNT(DISTINCT room_id) FROM room_detail WHERE room_detail.hotel_id = hotel_detail.hotel_id)"
+          ),
+          "total_noof_rooms",
+        ],
+      ],
       include: [
         {
           model: models.roomDetailModel,
+          attributes: [],
           required: false,
-          attributes: [
-            [
-              sequelize.fn("COUNT", sequelize.col("RoomDetails.room_id")),
-              "total_noof_rooms",
-            ],
-          ],
         },
       ],
-      group: ["hotel_id"],
+      where: {
+        location: data.inputLocation,
+      },
+      group: ["hotel_detail.hotel_id"],
     });
-    let formattedAllHotelsByLocation;
-    if (formattedAllHotelsByLocation) {
-      formattedAllHotelsByLocation = allhotelsByLocation.map((hotel) => ({
-        hotel_id: hotel.hotel_id,
-        hotel_name: hotel.hotel_name,
-        location: hotel.location,
-        address: hotel.address,
-        parking: hotel.parking,
-        wifi: hotel.wifi,
-        room_service: hotel.room_service,
-        swimming_pool: hotel.swimming_pool,
-        fitness_center: hotel.fitness_center,
-        dining: hotel.dining,
-        owner_id: hotel.owner,
-        total_noof_rooms:
-          hotel.RoomDetails.length > 0
-            ? hotel.RoomDetails[0].dataValues.total_noof_rooms
-            : 0,
-      }));
-    } else {
-      return null;
-    }
+
+    let formattedAllHotelsByLocation = allhotelsByLocation.map((result) => {
+      return result.dataValues;
+    });
+
+    // console.log(formattedAllHotelsByLocation);
+    console.log("**************************************");
 
     // format result to include hoteldetail and noof unbooked rooms if its greater than user no of rooms
     const output = [];
@@ -143,19 +149,21 @@ module.exports.getHotelByInput = async (data) => {
     formattedAllHotelsByLocation.forEach((hotel) => {
       const hotelId = hotel.hotel_id;
       const totalNoOfRooms = hotel.total_noof_rooms;
-
-      const bookedRoomsEntry = bookedHotels.find(
+      const bookedRoomsEntry = BookedHotelArray.find(
         (entry) => entry.hotel_id === hotelId
       );
-
+      // console.log(bookedRoomsEntry);
       if (bookedRoomsEntry) {
         const totalBookedRooms = bookedRoomsEntry.total_noof_bookedrooms;
         const notBookedRooms = totalNoOfRooms - totalBookedRooms;
+        console.log(notBookedRooms);
         if (notBookedRooms >= data.inputNoOfRooms) {
           output.push({ ...hotel, total_noof_rooms_notbooked: notBookedRooms });
         }
       }
     });
+    console.log("*******************END*******************");
+    return output;
   } catch (error) {
     console.log(error);
     return "FAILURE";

@@ -1,4 +1,4 @@
-const db = require("../../config/dbconfig");
+const { Sequelize } = require("sequelize");
 const models = require("../../models/index");
 
 // create review with booking id
@@ -22,15 +22,18 @@ module.exports.addNewReview = async (data) => {
 // home -> individual hotel page
 module.exports.getAllReviewByHotelId = async (hotelId) => {
   try {
-    const result = await models.reviewDetailModel.findAll({
-      include: [
-        {
-          model: models.bookingDetailModel,
-          where: { hotel_id: hotelId },
-        },
-      ],
+    let bookingResult = await models.bookingDetailModel.findAll({
+      where: { hotel_id: hotelId },
+      attributes: ["booking_id"], // Select only the booking IDs
     });
-    const dataValuesArray = result.map((instance) => instance.dataValues);
+    const bookingIds = bookingResult.map((booking) => booking.booking_id);
+
+    let reviewResult = await models.reviewDetailModel.findAll({
+      where: { booking_id: bookingIds },
+    });
+
+    console.log(reviewResult);
+    const dataValuesArray = reviewResult.map((instance) => instance.dataValues);
     return dataValuesArray;
   } catch (error) {
     console.log(error);

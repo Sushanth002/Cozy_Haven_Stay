@@ -114,17 +114,19 @@ module.exports.getRoomByInput = async (data) => {
     //find booked rooms within the given date range
     const bookedRooms = await models.bookingDescriptionModel.findAll({
       where: {
-        checkin_date: { [Op.lte]: checkoutDate },
-        checkout_date: { [Op.gte]: checkinDate },
+        checkin_date: { [Op.lte]: data.inputCheckinDate },
+        checkout_date: { [Op.gte]: data.inputCheckoutDate },
       },
       attributes: ["room_id"],
     });
-    const bookedRoomIds = bookedRooms.map((booking) => booking.room_id);
-
+    const bookedRoomIds = bookedRooms.map(
+      (booking) => booking.dataValues.room_id
+    );
+    console.log(bookedRoomIds);
     //find available rooms for the given hotel ID
-    const availableRooms = await RoomDetail.findAll({
+    const availableRooms = await models.roomDetailModel.findAll({
       where: {
-        hotel_id: hotelId,
+        hotel_id: data.hotel_id,
         room_id: { [Op.notIn]: bookedRoomIds },
       },
     });

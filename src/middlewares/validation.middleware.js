@@ -74,6 +74,4 @@ const ownerValidator = [
     }),
 ];
 
-
-
 module.exports = { adminValidator, ownerValidator };

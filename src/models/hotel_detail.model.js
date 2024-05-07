@@ -1,8 +1,8 @@
-const { Sequelize, DataTypes } = require("sequelize");
+const { DataTypes } = require("sequelize");
 const db = require("../config/dbconfig");
 const models = require("./index");
 
-const HotelDetail = db.define(
+const HotelDetailModel = db.define(
   "hotel_detail",
   {
     hotel_id: {
@@ -57,10 +57,52 @@ const HotelDetail = db.define(
   }
 );
 
-// HotelDetail.belongsTo(models.hotelOwnerDetailModel);
-// HotelDetail.hasMany(models.roomDetailModel);
+const RoomDetailModel = db.define(
+  "room_detail",
+  {
+    room_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    room_size: {
+      type: DataTypes.INTEGER,
+    },
+    bed_size: {
+      type: DataTypes.ENUM("SINGLE_BED", "DOUBLE_BED", "KINGSIZE_BED"),
+    },
+    max_people_accomodate: {
+      type: DataTypes.INTEGER,
+    },
+    base_fare: {
+      type: DataTypes.INTEGER,
+    },
+    ac_non_ac: {
+      type: DataTypes.BOOLEAN,
+    },
+    hotel_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "hotel_detail",
+        key: "hotel_id",
+      },
+    },
+  },
+  {
+    freezeTableName: true,
+    timestamps: false,
+    tableName: "room_detail",
+  }
+);
 
-module.exports = HotelDetail;
+// HotelDetail.belongsTo(models.hotelOwnerDetailModel);
+HotelDetailModel.hasMany(RoomDetailModel, {
+  foreignKey: "hotel_id",
+  sourceKey: "hotel_id",
+});
+
+module.exports = { HotelDetailModel, RoomDetailModel };
 
 // **************************************************************************************
 // DROP TABLE IF EXISTS hotel_detail;

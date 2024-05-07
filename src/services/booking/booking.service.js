@@ -95,13 +95,13 @@ module.exports.getCurrentBookingByUserID = async (user_id) => {
   }
 };
 //current booking by hotelid
-module.exports.getCurrentBookingByHotelID = async (data) => {
+module.exports.getCurrentBookingByHotelID = async (hotel_id) => {
   try {
     let today = new Date();
     today.setHours(0, 0, 0, 0);
     const result = await models.bookingDetailModel.findAll({
       where: {
-        hotel_id: data.hotel_id,
+        hotel_id: hotel_id,
         checkout_date: {
           [Op.gt]: today,
         },

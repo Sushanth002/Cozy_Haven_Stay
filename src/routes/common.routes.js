@@ -8,8 +8,8 @@ const {
 } = require("../controllers/common/common.controller");
 
 // ##########common##################
-router.route("/search-hotels").post(searchHotel);
-router.route("/room").post(getRoomByInput);
-router.route("/review/:hotelid").post(getReviewByHotelID);
+router.route("/search-hotels").get(searchHotel);
+router.route("/room").get(getRoomByInput);
+router.route("/review/:hotelid").get(getReviewByHotelID);
 
 module.exports = router;
