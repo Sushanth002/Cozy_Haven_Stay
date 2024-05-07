@@ -79,6 +79,7 @@ module.exports.addReviewToHotel = AsyncHandler(async (req, res) => {
     // console.log("#########START############");
     let { userid, booking_id, review, rating } = req.body;
     let { user_id: user_authid } = req.auth;
+    console.log(userid,user_authid,req.body);
 
     if (user_authid !== userid) {
       userLogger.error(

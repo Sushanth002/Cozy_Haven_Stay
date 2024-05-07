@@ -308,20 +308,72 @@ module.exports.getPastBooking = AsyncHandler(async (req, res) => {
     throw error;
   }
 });
+// // get current booking by hotelid
+// module.exports.getCurrentBooking = AsyncHandler(async (req, res) => {
+//   try {
+//     // console.log("#########START############");
+//     let { hotelid } = req.params;
+//     let { owner_id: owner_authid } = req.auth;
+
+//     let hotelData = await hotelService.getAllRoomDetailByHotelId(hotelid);
+//     if (hotelData === "FAILURE") {
+//       ownerLogger.error(
+//         ` getCurrentBooking-> $OWNER_ID=[${owner_authid}] : couldno fetch hotel`
+//       );
+//       throw new ApiError(401, "couldnot fetch hotel");
+//     }
+
+//     if (owner_authid !== data.owner_id) {
+//       ownerLogger.error(
+//         ` getCurrentBooking-> $OWNER_ID=[${owner_authid}] : unauthorized access`
+//       );
+//       throw new ApiError(401, "unauthorized access");
+//     }
+
+//     let pastBookings = await bookingService.getCurrentBookingByHotelID(hotelid);
+//     if (pastBookings === "FAILURE") {
+//       ownerLogger.error(
+//         `getCurrentBooking -> $OWNER_ID=[${owner_authid}] : Couldnot fetch current bookings `
+//       );
+//       throw new ApiError(500, "Couldnot fetch past bookings");
+//     }
+
+//     ownerLogger.info(
+//       `getCurrentBooking -> $USER_ID=[${owner_authid}] : fetched past booking successfully`
+//     );
+//     // console.log("#########END############");
+//     return res
+//       .status(200)
+//       .json(
+//         new ApiResponse(
+//           200,
+//           pastBookings,
+//           "fetched current booking successfully"
+//         )
+//       );
+//   } catch (error) {
+//     throw error;
+//   }
+// });
+
+
+
 // get current booking by hotelid
 module.exports.getCurrentBooking = AsyncHandler(async (req, res) => {
   try {
     // console.log("#########START############");
-    let { hotelid } = req.params;
+    let  hotelid  = parseInt(req.params.hotelid);
+    //let data=req.body
     let { owner_id: owner_authid } = req.auth;
+    //console.log(data,owner_authid);
 
-    let hotelData = await hotelService.getAllRoomDetailByHotelId(hotelid);
-    if (hotelData === "FAILURE") {
-      ownerLogger.error(
-        ` getCurrentBooking-> $OWNER_ID=[${owner_authid}] : couldno fetch hotel`
-      );
-      throw new ApiError(401, "couldnot fetch hotel");
-    }
+    // let hotelData = await hotelService.getAllRoomDetailByHotelId(hotelid);
+    // if (hotelData === "FAILURE") {
+    //   ownerLogger.error(
+    //     ` getCurrentBooking-> $OWNER_ID=[${owner_authid}] : couldno fetch hotel`
+    //   );
+    //   throw new ApiError(401, "couldnot fetch hotel");
+    // }
 
     if (owner_authid !== data.owner_id) {
       ownerLogger.error(
@@ -330,16 +382,16 @@ module.exports.getCurrentBooking = AsyncHandler(async (req, res) => {
       throw new ApiError(401, "unauthorized access");
     }
 
-    let pastBookings = await bookingService.getCurrentBookingByHotelID(hotelid);
-    if (pastBookings === "FAILURE") {
+    let currentBookings = await bookingService.getCurrentBookingByHotelID(hotelid);
+    if (currentBookings === "FAILURE") {
       ownerLogger.error(
         `getCurrentBooking -> $OWNER_ID=[${owner_authid}] : Couldnot fetch current bookings `
       );
-      throw new ApiError(500, "Couldnot fetch past bookings");
+      throw new ApiError(500, "Couldnot fetch current bookings");
     }
 
     ownerLogger.info(
-      `getCurrentBooking -> $USER_ID=[${owner_authid}] : fetched past booking successfully`
+      `getCurrentBooking -> $USER_ID=[${owner_authid}] : fetched current booking successfully`
     );
     // console.log("#########END############");
     return res
@@ -347,7 +399,7 @@ module.exports.getCurrentBooking = AsyncHandler(async (req, res) => {
       .json(
         new ApiResponse(
           200,
-          pastBookings,
+          currentBookings,
           "fetched current booking successfully"
         )
       );

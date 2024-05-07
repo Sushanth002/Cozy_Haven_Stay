@@ -124,6 +124,63 @@ const postReviewValidation = ()=>{
 
 };
 
+//booking validation
+
+const bookingValidation = () => {
+    return [
+        body('hotel_id')
+            .notEmpty()
+            .withMessage('Hotel ID is required')
+            .isNumeric()
+            .withMessage('Hotel ID must be a number'),
+
+        body('user_id')
+            .notEmpty()
+            .withMessage('User ID is required')
+            .isNumeric()
+            .withMessage('User ID must be a number'),
+
+        body('no_rooms')
+            .notEmpty()
+            .withMessage('Number of rooms is required')
+            .isNumeric()
+            .withMessage('Number of rooms must be a number'),
+
+        body('total_booking_amount')
+            .notEmpty()
+            .withMessage('Total booking amount is required')
+            .isNumeric()
+            .withMessage('Total booking amount must be a number'),
+
+        body('checkin_date')
+            .notEmpty()
+            .withMessage('Check-in date is required')
+            .isISO8601()
+            .withMessage('Check-in date must be in ISO8601 format (YYYY-MM-DD)'),
+
+        body('checkout_date')
+            .notEmpty()
+            .withMessage('Check-out date is required')
+            .isISO8601()
+            .withMessage('Check-out date must be in ISO8601 format (YYYY-MM-DD)'),
+
+        body('bookingDescriptionList')
+            .notEmpty()
+            .withMessage('Booking description list is required')
+            .isArray({ min: 1 })
+            .withMessage('Booking description list must contain at least one item')
+            .custom((value, { req }) => {
+                for (const booking of value) {
+                    if (!booking.room_id || !booking.booking_amount_room || !booking.checkin_date || !booking.checkout_date) {
+                        throw new Error('Booking description list must contain room_id, booking_amount_room, checkin_date, and checkout_date for each item');
+                    }
+                }
+                return true;
+            })
+            .withMessage('Each item in the booking description list must contain room_id, booking_amount_room, checkin_date, and checkout_date')
+    ];
+};
+
 // Middleware function to handle validation errors
 const validate = (req, res, next) => {
   const errors = validationResult(req);
@@ -141,4 +198,5 @@ module.exports = {
   updateUserValididation,
   postReviewValidation,
   validate,
+  bookingValidation
 };

@@ -17,7 +17,8 @@ const { verifyJWT } = require("../middlewares/auth.middleware.js");
 const { userRegistrationValidationRules,
   loginValidation,
   updateUserValididation,
-  postReviewValidation, 
+  postReviewValidation,
+  bookingValidation, 
   validate 
 } = require('../middlewares/userValidation.middleware.js');
 
@@ -43,6 +44,6 @@ router
 router
   .route("/dashboard/booking/current-booking/:userid")
   .get(verifyJWT, getCurrentBooking);
-router.route("/newbooking").post(verifyJWT, createNewBooking);
+router.route("/newbooking").post(verifyJWT,bookingValidation(),validate , createNewBooking);
 
 module.exports = router;

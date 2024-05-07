@@ -53,9 +53,9 @@ router
   .put(verifyJWT, getPastBooking);
 router
   .route("/dashboard/booking/current-booking/update-status")
-  .put(verifyJWT, updateBookingStatus);
+  .get(verifyJWT, updateBookingStatus);
 router
   .route("/dashboard/booking/current-booking/:hotelid")
-  .put(verifyJWT, getCurrentBooking);
+  .get(verifyJWT, getCurrentBooking);
 
 module.exports = router;
