@@ -10,10 +10,24 @@ const {
 const { generateAccessAndRefreshTokens } = require("../../utils/generateToken");
 const hotelOwnerService = require("../../services/hotel/hotel_owner_detail.service");
 
+const { validationResult } = require("express-validator");
+
 // register new hotel owner
 module.exports.ownerRegister = AsyncHandler(async (req, res) => {
   try {
     // console.log("##########START############################");
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const formattedErrors = [];
+      errors
+        .array()
+        .map((err) => formattedErrors.push({ [err.path]: err.msg }));
+
+      return res.status(422).json({
+        success: false,
+        errors: formattedErrors,
+      });
+    }
     let data = req.body;
     // check if owner already present or not
     // encrypt the password
@@ -46,6 +60,19 @@ module.exports.ownerRegister = AsyncHandler(async (req, res) => {
 module.exports.ownerLogin = AsyncHandler(async (req, res) => {
   try {
     // console.log("##########START############################");
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const formattedErrors = [];
+      errors
+        .array()
+        .map((err) => formattedErrors.push({ [err.path]: err.msg }));
+
+      return res.status(422).json({
+        success: false,
+        errors: formattedErrors,
+      });
+    }
+
     let data = req.body;
     //find the owner
     let owner = await hotelOwnerService.getHotelOwnerByEmail(data.email);
@@ -120,8 +147,8 @@ module.exports.ownerLogout = AsyncHandler(async (req, res) => {
 
     if (owner_authid !== ownerid) {
       console.log("#############################");
-      userLogger.error(
-        ` ownerLogout-> $OWNER_ID=[${user_authid}] : unauthorized access`
+      ownerLogger.error(
+        ` ownerLogout-> $OWNER_ID=[${owner_authid}] : unauthorized access`
       );
       throw new ApiError(401, "unauthorized access");
     }

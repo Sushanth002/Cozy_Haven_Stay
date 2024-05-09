@@ -47,6 +47,7 @@ module.exports.getPastBookingByUserID = async (user_id) => {
         },
       },
     });
+
     let dataValuesArray = result.map((instance) => instance.dataValues);
     return dataValuesArray;
   } catch (error) {
@@ -67,6 +68,7 @@ module.exports.getPastBookingByHotelID = async (hotel_id) => {
         },
       },
     });
+    console.log(result);
     let dataValuesArray = result.map((instance) => instance.dataValues);
     return dataValuesArray;
   } catch (error) {
@@ -107,6 +109,7 @@ module.exports.getCurrentBookingByHotelID = async (hotel_id) => {
         },
       },
     });
+
     let dataValuesArray = result.map((instance) => instance.dataValues);
     return dataValuesArray;
   } catch (error) {

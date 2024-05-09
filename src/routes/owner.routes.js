@@ -20,18 +20,31 @@ const {
 } = require("../controllers/owner/ownerDashboard.controller.js");
 const { verifyJWT } = require("../middlewares/auth.middleware.js");
 
+const {
+  ownerRegisterValidator,
+  ownerUpdateValidator,
+  ownerLoginValidator,
+  hotelAddValidation,
+  roomAddValidation,
+} = require("../middlewares/validation.middleware.js");
 const router = Router();
 
 // ##########owner##################
 // unsecured routes
-router.route("/register").post(ownerRegister);
-router.route("/login").post(ownerLogin);
+router.route("/register").post(ownerRegisterValidator, ownerRegister);
+router.route("/login").post(ownerLoginValidator, ownerLogin);
 //secured routes (jwt verification needed)
 router.route("/logout/:ownerid").post(verifyJWT, ownerLogout);
-router.route("/dashboard/update-owner").put(verifyJWT, updateOwnerDetail);
+router
+  .route("/dashboard/update-owner")
+  .put(ownerUpdateValidator, verifyJWT, updateOwnerDetail);
 // ###########hotel##########
-router.route("/dashboard/add-new-hotel").post(verifyJWT, addNewHotelDetail);
-router.route("/dashboard/update-hotel").put(verifyJWT, updateHotelDetail);
+router
+  .route("/dashboard/add-new-hotel")
+  .post(hotelAddValidation, verifyJWT, addNewHotelDetail);
+router
+  .route("/dashboard/update-hotel")
+  .put(hotelAddValidation, verifyJWT, updateHotelDetail);
 router
   .route("/dashboard/get-hotel/:ownerid")
   .get(verifyJWT, getHotelDetailByOwnerId);
@@ -42,18 +55,22 @@ router
 router
   .route("/dashboard/get-room/:roomid")
   .get(verifyJWT, getRoomDetailByRoomId);
-router.route("/dashboard/add-new-room").post(verifyJWT, addRoomDetail);
+router
+  .route("/dashboard/add-new-room")
+  .post(roomAddValidation, verifyJWT, addRoomDetail);
 router
   .route("/dashboard/delete-room/:roomid")
   .delete(verifyJWT, deleteRoomDetailByRoomId);
-router.route("/dashboard/update-room").put(verifyJWT, updateRoomDetailByRoomId);
+router
+  .route("/dashboard/update-room")
+  .put(roomAddValidation, verifyJWT, updateRoomDetailByRoomId);
 //###########booking############
 router
   .route("/dashboard/booking/past-booking/:hotelid")
-  .put(verifyJWT, getPastBooking);
+  .get(verifyJWT, getPastBooking);
 router
   .route("/dashboard/booking/current-booking/update-status")
-  .get(verifyJWT, updateBookingStatus);
+  .put(verifyJWT, updateBookingStatus);
 router
   .route("/dashboard/booking/current-booking/:hotelid")
   .get(verifyJWT, getCurrentBooking);

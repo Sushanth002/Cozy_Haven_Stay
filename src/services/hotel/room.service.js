@@ -20,6 +20,7 @@ module.exports.getAllRoomsByHotelId = async (hotelId) => {
         hotel_id: hotelId,
       },
     });
+
     const dataValuesArray = result.map((instance) => instance.dataValues);
     return dataValuesArray;
   } catch (error) {
