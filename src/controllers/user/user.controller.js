@@ -12,6 +12,7 @@ const { generateAccessAndRefreshTokens } = require("../../utils/generateToken");
 const userService = require("../../services/user/user_detail.service");
 const bookingService = require("../../services/booking/booking.service");
 const bookingDescriptionService = require("../../services/booking/booking_description.service");
+const roomService = require("../../services/hotel/room.service");
 
 // register new user
 module.exports.userRegister = AsyncHandler(async (req, res) => {
@@ -167,12 +168,77 @@ module.exports.userLogout = AsyncHandler(async (req, res) => {
 });
 
 // new booking
+// module.exports.createNewBooking = AsyncHandler(async (req, res) => {
+//   try {
+//     console.log("##########START############################");
+//     let { user_id: user_authid } = req.auth;
+//     let data = req.body;
+//     // data ={hotel_id,user_id,no_rooms,total_booking_amount,checkin_date,checkout_date,booking_status:BOOKED,bookingDescriptionList:[{booking_id,room_id,booking_amount_room,checkin_date,checkout_date},...]}
+
+//     if (user_authid !== data.user_id) {
+//       userLogger.error(
+//         ` createNewBooking-> $USER_ID=[${user_authid}] : unauthorized access`
+//       );
+//       throw new ApiError(401, "unauthorized access");
+//     }
+//     console.log("##############################");
+
+//     let bookingData = {
+//       hotel_id: data.hotel_id,
+//       user_id: data.user_id,
+//       no_rooms: data.no_rooms,
+//       total_booking_amount: data.total_booking_amount,
+//       checkin_date: data.checkin_date,
+//       checkout_date: data.checkout_date,
+//       booking_status: "BOOKED",
+//     };
+//     console.log(bookingData);
+//     let bookingResult = await bookingService.addNewBookingDetail(bookingData);
+//     if (bookingResult === "FAILURE") {
+//       userLogger.error(
+//         ` createNewBooking-> $USER_ID=[${user_authid}] : couldnot add new booking to database`
+//       );
+//       throw new ApiError(500, "couldnot add new booking to database");
+//     }
+//     console.log("##############################");
+
+//     let output = [];
+//     for (let bookingDescriptionItem of data.bookingDescriptionList) {
+//       bookingDescriptionItem.booking_id = bookingResult.booking_id;
+//       let bookingDescriptionData =
+//         await bookingDescriptionService.addNewBookingDescription(
+//           bookingDescriptionItem
+//         );
+
+//       if (bookingDescriptionData === "FAILURE") {
+//         userLogger.error(
+//           ` createNewBooking-> $USER_ID=[${user_authid}] : Couldnot add booking description`
+//         );
+//         throw new ApiError(500, "Couldnot add booking description ");
+//       }
+//       output.push(bookingDescriptionData);
+//     }
+
+//     userLogger.error(
+//       ` createNewBooking-> $USER_ID=[${user_authid}] : Booking successful`
+//     );
+//     console.log("##############END####################");
+//     return res
+//       .status(200)
+//       .json(
+//         new ApiResponse(200, [bookingResult, ...output], "Booking successful")
+//       );
+//   } catch (error) {
+//     throw error;
+//   }
+// });
+
+
 module.exports.createNewBooking = AsyncHandler(async (req, res) => {
   try {
     console.log("##########START############################");
     let { user_id: user_authid } = req.auth;
     let data = req.body;
-    // data ={hotel_id,user_id,no_rooms,total_booking_amount,checkin_date,checkout_date,booking_status:BOOKED,bookingDescriptionList:[{booking_id,room_id,booking_amount_room,checkin_date,checkout_date},...]}
 
     if (user_authid !== data.user_id) {
       userLogger.error(
@@ -180,30 +246,60 @@ module.exports.createNewBooking = AsyncHandler(async (req, res) => {
       );
       throw new ApiError(401, "unauthorized access");
     }
-    console.log("##############################");
 
     let bookingData = {
       hotel_id: data.hotel_id,
       user_id: data.user_id,
       no_rooms: data.no_rooms,
-      total_booking_amount: data.total_booking_amount,
+      total_booking_amount: 0, // Set initial value to zero
       checkin_date: data.checkin_date,
       checkout_date: data.checkout_date,
       booking_status: "BOOKED",
     };
-    console.log(bookingData);
+
     let bookingResult = await bookingService.addNewBookingDetail(bookingData);
     if (bookingResult === "FAILURE") {
       userLogger.error(
-        ` createNewBooking-> $USER_ID=[${user_authid}] : couldnot add new booking to database`
+        ` createNewBooking-> $USER_ID=[${user_authid}] : could not add new booking to database`
       );
-      throw new ApiError(500, "couldnot add new booking to database");
+      throw new ApiError(500, "could not add new booking to database");
     }
-    console.log("##############################");
 
     let output = [];
-    for (let bookingDescriptionItem of data.bookingDescriptionList) {
-      bookingDescriptionItem.booking_id = bookingResult.booking_id;
+    let totalBookingAmount = 0; // Initialize total booking amount
+
+    for (let roomId of data.rooms) {
+      let room = await roomService.getRoomById(roomId);
+     
+      if (!room) {
+        throw new ApiError(404, `Room with ID ${roomId} not found`);
+      }
+
+      let additionalCharges = data.additionalCharges.find(
+        (charge) => charge[0] === roomId
+      );
+      if (!additionalCharges) {
+        throw new ApiError(400, `Additional charges not provided for room ${roomId}`);
+      }
+
+      let totalAdditionalCharges = additionalCharges
+        .slice(1)
+        .map((age) => (age > 14 ? room.base_fare * 0.4 : room.base_fare * 0.2))
+        .reduce((acc, charge) => acc + charge, 0);
+
+      let bookingAmountRoom = room.base_fare + totalAdditionalCharges;
+
+      totalBookingAmount += bookingAmountRoom; // Accumulate booking amount for each room
+      console.log(totalBookingAmount);
+
+      let bookingDescriptionItem = {
+        booking_id: bookingResult.booking_id,
+        room_id: roomId,
+        booking_amount_room: bookingAmountRoom,
+        checkin_date: bookingData.checkin_date,
+        checkout_date: bookingData.checkout_date,
+      };
+
       let bookingDescriptionData =
         await bookingDescriptionService.addNewBookingDescription(
           bookingDescriptionItem
@@ -211,14 +307,23 @@ module.exports.createNewBooking = AsyncHandler(async (req, res) => {
 
       if (bookingDescriptionData === "FAILURE") {
         userLogger.error(
-          ` createNewBooking-> $USER_ID=[${user_authid}] : Couldnot add booking description`
+          ` createNewBooking-> $USER_ID=[${user_authid}] : Could not add booking description`
         );
-        throw new ApiError(500, "Couldnot add booking description ");
+        throw new ApiError(500, "Could not add booking description ");
       }
       output.push(bookingDescriptionData);
     }
+    console.log('Total booking amount:', totalBookingAmount);
 
-    userLogger.error(
+    // Update the total_booking_amount with the calculated value
+    await bookingService.updateTotalBookingAmount(
+      bookingResult.booking_id,
+      totalBookingAmount
+    );
+
+    bookingResult = await bookingService.getBookingDetailById(bookingResult.booking_id);
+
+    userLogger.info(
       ` createNewBooking-> $USER_ID=[${user_authid}] : Booking successful`
     );
     console.log("##############END####################");

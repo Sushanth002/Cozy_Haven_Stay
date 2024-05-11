@@ -51,6 +51,6 @@ router
   .get(verifyJWT, getCurrentBooking);
 router
   .route("/newbooking")
-  .post(verifyJWT, bookingValidation(), validate, createNewBooking);
+  .post(verifyJWT,  createNewBooking);
 
 module.exports = router;

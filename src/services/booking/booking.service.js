@@ -117,3 +117,59 @@ module.exports.getCurrentBookingByHotelID = async (hotel_id) => {
     return "FAILURE";
   }
 };
+
+//update booing amount with additional charges
+
+// module.exports.updateTotalBookingAmount = async(bookingId,totalBookingAmount)=>{
+
+//   try{
+//     const booking = await models.bookingDetailModel.findByPk(bookingId);
+//     booking.total_booking_amount = totalBookingAmount;
+//     return booking.total_booking_amount
+
+//   }
+//   catch (error) {
+//     console.log(error);
+//     return "FAILURE";
+//   }
+
+// }
+
+module.exports.updateTotalBookingAmount = async (bookingId, totalBookingAmount) => {
+  try {
+    // Find the booking detail by ID
+    const booking = await models.bookingDetailModel.findByPk(bookingId);
+    if (!booking) {
+      // If booking is not found, return false indicating failure
+      return false;
+    }
+
+    // Update the total_booking_amount field
+    booking.total_booking_amount = totalBookingAmount;
+
+    // Save the changes to the database
+    await booking.save();
+
+    // Return true indicating success
+    return true;
+  } catch (error) {
+    // If an error occurs, log the error and return false indicating failure
+    console.error('Error updating total booking amount:', error);
+    return false;
+  }
+};
+
+
+//get bookings by bookingid
+
+module.exports.getBookingDetailById = async (bookingId) => {
+  try {
+    // Find the booking detail by its ID
+    const bookingDetail = await models.bookingDetailModel.findByPk(bookingId);
+    return bookingDetail;
+  } catch (error) {
+    // Handle errors
+    console.error(error);
+    throw new Error("Failed to retrieve booking detail");
+  }
+};
