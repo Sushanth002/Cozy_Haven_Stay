@@ -130,6 +130,37 @@ module.exports.updateHotelDetail = AsyncHandler(async (req, res) => {
   }
 });
 
+
+//hotel owner details by owner_id
+module.exports.getOwnerDetailByOwnerId = AsyncHandler(async (req, res) => {
+  try {
+    // console.log("#########START############");
+    let { owner_id: owner_authid } = req.auth;
+    let ownerid = parseInt(req.params.ownerid);
+    let ownerData = await hotelOwnerService.getHotelOwnerById(ownerid);
+    if (ownerData == "FAILURE") {
+      ownerLogger.error(
+        `getOwnerDetailByOwnerId -> $OWNER_ID=[${owner_authid}] : Couldnot fetch owner detail from database`
+      );
+      throw new ApiError(500, "Couldnot fetch owner detail from database ");
+    }
+
+    ownerLogger.info(
+      `getOwnerDetailByOwnerId -> $OWNER_ID=[${owner_authid}] : fetched owner detail successfully `
+    );
+    delete ownerData.refresh_token;
+    delete ownerData.password;
+    // console.log("#########END############");
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, ownerData, "fetched owner detail successfully ")
+      );
+  } catch (error) {
+    throw error;
+  }
+});
+
 // get hotel by hotel_owner id
 module.exports.getHotelDetailByOwnerId = AsyncHandler(async (req, res) => {
   try {

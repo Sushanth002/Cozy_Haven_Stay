@@ -187,3 +187,43 @@ module.exports.cancelBookingByBookingID = AsyncHandler(async (req, res) => {
     throw error;
   }
 });
+
+//Get user details by userid
+
+module.exports.getUserDetailById = AsyncHandler(async (req, res) => {
+  try {
+    // console.log("#########START############");
+    let { user_id: user_authid } = req.auth;
+    console.log(req.auth);
+    let data = parseInt(req.params.userid);
+    console.log(data);
+
+    if (user_authid !== data) {
+      userLogger.error(
+        ` getUserDetailById-> $USER_ID=[${user_authid}] : unauthorized access`
+      );
+      throw new ApiError(401, "unauthorized access");
+    }
+
+    let result = await userService.getUserById(data);
+    if (result == "FAILURE") {
+      userLogger.error(
+        `getUserDetailById -> $USER_ID=[${user_authid}] : Couldnot get user in database `
+      );
+      throw new ApiError(500, "Couldnot get user in database ");
+    }
+
+    userLogger.info(
+      `getUserDetailById -> $USER_ID=[${user_authid}] : user details fetched`
+    );
+
+    delete result.refresh_token;
+    delete result.password;
+    // console.log("#########END############");
+    return res.status(200).json(new ApiResponse(200, result, " user details fetched successfully"));
+  } catch (error) {
+    throw error;
+  }
+});
+
+

@@ -11,6 +11,7 @@ const {
   addReviewToHotel,
   getCurrentBooking,
   cancelBookingByBookingID,
+  getUserDetailById
 } = require("../controllers/user/userDashboard.controller.js");
 const { verifyJWT } = require("../middlewares/auth.middleware.js");
 
@@ -36,6 +37,7 @@ router.route("/logout/:userid").post(verifyJWT, userLogout);
 router
   .route("/dashboard/update-user")
   .post(verifyJWT, updateUserValididation(), validate, updateUserDetail);
+  router.route("/dashboard/:userid").get(verifyJWT, getUserDetailById);
 // ########booking#######
 router
   .route("/dashboard/booking/past-bookings/add-review")

@@ -17,6 +17,7 @@ const {
   getPastBooking,
   getCurrentBooking,
   updateBookingStatus,
+  getOwnerDetailByOwnerId
 } = require("../controllers/owner/ownerDashboard.controller.js");
 const { verifyJWT } = require("../middlewares/auth.middleware.js");
 
@@ -35,6 +36,7 @@ router.route("/register").post(ownerRegisterValidator, ownerRegister);
 router.route("/login").post(ownerLoginValidator, ownerLogin);
 //secured routes (jwt verification needed)
 router.route("/logout/:ownerid").post(verifyJWT, ownerLogout);
+router.route("/dashboard/:ownerid").get(verifyJWT, getOwnerDetailByOwnerId);
 router
   .route("/dashboard/update-owner")
   .put(ownerUpdateValidator, verifyJWT, updateOwnerDetail);
