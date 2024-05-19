@@ -13,6 +13,8 @@ module.exports.updateUserDetail = AsyncHandler(async (req, res) => {
     // console.log("#########START############");
     let { user_id: user_authid } = req.auth;
     let data = req.body;
+    //console.log(data);
+    //console.log(req.auth);
 
     if (user_authid !== data.user_id) {
       userLogger.error(
@@ -79,6 +81,8 @@ module.exports.addReviewToHotel = AsyncHandler(async (req, res) => {
     // console.log("#########START############");
     let { userid, booking_id, review, rating } = req.body;
     let { user_id: user_authid } = req.auth;
+    console.log(req.body);
+    console.log(req.auth);
 
     if (user_authid !== userid) {
       userLogger.error(
@@ -153,6 +157,9 @@ module.exports.cancelBookingByBookingID = AsyncHandler(async (req, res) => {
   try {
     let { user_id, booking_id } = req.body;
     let { user_id: user_authid } = req.auth;
+    console.log(req.body);
+    console.log(req.auth);
+
 
     if (user_authid !== user_id) {
       userLogger.error(

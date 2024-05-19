@@ -81,8 +81,8 @@ const updateUserValididation = () => {
     body("gender")
       .notEmpty()
       .withMessage("Gender is required")
-      .isIn(["MALE", "FEMALE"])
-      .withMessage("Gender must be either MALE or FEMALE"),
+      .isIn(["MALE", "FEMALE","OTHER"])
+      .withMessage("Gender must be either MALE or FEMALE or OTHER"),
     body("contact_no")
       .notEmpty()
       .withMessage("Contact number is required")

@@ -8,36 +8,74 @@ const roomService = require("../../services/hotel/room.service");
 const reviewService = require("../../services/hotel/review.service");
 
 // get all hotels by checkindate, checkoutdate, noof rooms
+// module.exports.searchHotel = AsyncHandler(async (req, res) => {
+//   try {
+//     console.log("################START########################");
+//     let data = req.body;
+//     console.log(req.body);
+//     // data={inputCheckinDate,inputCheckoutDate, inputLocation,inputNoOfRooms }
+//     let outputHotels = await hotelService.getHotelByInput(data);
+//     console.log("########################################");
+//     if (outputHotels === "FAILURE") {
+//       throw new ApiError(500, "could not fetch hotels by userinput");
+//     }
+//     if (outputHotels.length == 0) {
+//       return res
+//         .status(200)
+//         .json(new ApiResponse(200, [], "No hotels to show "));
+//     }
+
+//     console.log("################END########################");
+//     return res
+//       .status(200)
+//       .json(
+//         new ApiResponse(
+//           200,
+//           [outputHotels, data.inputCheckoutDate, data.inputCheckoutDate],
+//           "hotels Fetched "
+//         )
+//       );
+//   } catch (error) {
+//     throw error;
+//   }
+// });
+
+//get all hotels by checkindate, checkoutdate, noof rooms
 module.exports.searchHotel = AsyncHandler(async (req, res) => {
   try {
     console.log("################START########################");
     let data = req.body;
-    // data={inputCheckinDate,inputCheckoutDate, inputLocation,inputNoOfRooms }
+
     let outputHotels = await hotelService.getHotelByInput(data);
+
     console.log("########################################");
     if (outputHotels === "FAILURE") {
-      throw new ApiError(500, "could not fetch hotels by userinput");
-    }
-    if (outputHotels.length == 0) {
-      return res
-        .status(200)
-        .json(new ApiResponse(200, [], "No hotels to show "));
+      throw new ApiError(500, "could not fetch hotels by user input");
     }
 
+    if (outputHotels.length === 0) {
+      return res
+        .status(200)
+        .json(new ApiResponse(200, [], "No hotels to show"));
+    }
+
+    // Log the final response before sending it
     console.log("################END########################");
+
     return res
       .status(200)
       .json(
         new ApiResponse(
           200,
-          [outputHotels, data.inputCheckoutDate, data.inputCheckoutDate],
-          "hotels Fetched "
+          outputHotels,
+          "Hotels fetched successfully"
         )
       );
   } catch (error) {
     throw error;
   }
 });
+
 // get all rooms by hotelid+checkindate and checkoutdate
 module.exports.getRoomByInput = AsyncHandler(async (req, res) => {
   try {
